@@ -1,0 +1,6 @@
+{
+  "name": "RentWise – Community Rental Price & Home Finder",
+  "description": "A community-driven platform to find rental homes, anonymously contribute rent data, compare locality prices, and find your ideal neighborhood.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

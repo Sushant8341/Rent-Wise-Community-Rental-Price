@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "users": {
+      "title": "User Profiles",
+      "description": "Registered landlord and resident user accounts authenticated via Firebase",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "phone": { "type": "string" },
+        "photoURL": { "type": "string" }
+      },
+      "required": ["uid", "email"]
+    },
+    "listings": {
+      "title": "Property Listings",
+      "description": "Property listings posted by verified landlords or property managers",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "city": { "type": "string" },
+        "locality": { "type": "string" },
+        "address": { "type": "string" },
+        "rentINR": { "type": "number" },
+        "bedrooms": { "type": "number" },
+        "bathrooms": { "type": "number" },
+        "propertyType": { "type": "string" },
+        "ownerEmail": { "type": "string" },
+        "ownerName": { "type": "string" },
+        "ownerPhone": { "type": "string" },
+        "images": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["title", "city", "locality", "rentINR"]
+    },
+    "reports": {
+      "title": "Community Rent Reports",
+      "description": "Anonymous community-submitted rental data for market transparency",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "locality": { "type": "string" },
+        "city": { "type": "string" },
+        "rent": { "type": "number" },
+        "deposit": { "type": "number" },
+        "bhk": { "type": "number" },
+        "sqft": { "type": "number" },
+        "furnishing": { "type": "string" },
+        "leaseStartDate": { "type": "string" },
+        "maintenanceMonthly": { "type": "number" },
+        "landlordRating": { "type": "number" },
+        "waterSupplyRating": { "type": "number" },
+        "anonymousHandle": { "type": "string" },
+        "comments": { "type": "string" },
+        "verifiedLease": { "type": "boolean" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["locality", "city", "rent"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profile records"
+    },
+    "/listings/{listingId}": {
+      "schema": "listings",
+      "description": "Property listings"
+    },
+    "/reports/{reportId}": {
+      "schema": "reports",
+      "description": "Anonymous community rent data reports"
+    }
+  }
+}
