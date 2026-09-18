@@ -199,32 +199,33 @@ export const ContributeModal: React.FC<ContributeModalProps> = ({
   const activeLocalityList = city === 'Vizianagaram' ? VIZIANAGARAM_LOCALITIES : VIZAG_LOCALITIES;
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-xl w-full my-8 border border-slate-200 shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-xl w-full my-auto sm:my-6 border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]">
         {/* Header with Anonymous Protection Banner */}
-        <div className="bg-emerald-950 p-5 sm:p-6 text-white relative">
+        <div className="bg-emerald-950 p-4 sm:p-6 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-emerald-900/60 rounded-full transition-colors"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-emerald-900/60 rounded-full transition-colors"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
-            <ShieldCheck className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            <ShieldCheck className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
             <span>100% Anonymous Resident Submission</span>
           </div>
 
-          <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-white">
+          <h2 className="font-heading font-extrabold text-lg sm:text-2xl text-white">
             Contribute Rental Data (Anonymous)
           </h2>
-          <p className="text-xs text-emerald-200 mt-1 leading-relaxed">
+          <p className="text-[11px] sm:text-xs text-emerald-200 mt-0.5 sm:mt-1 leading-relaxed">
             No login or phone number required. Protect your identity while preventing future renters from overpaying in Andhra Pradesh.
           </p>
 
           {/* Privacy Guarantee Pill */}
-          <div className="mt-3 flex items-center gap-2 text-[11px] bg-emerald-900/80 border border-emerald-800 rounded-xl px-3 py-1.5 text-emerald-300">
-            <Lock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+          <div className="mt-2.5 sm:mt-3 flex items-center gap-1.5 sm:gap-2 text-[10px] sm:text-[11px] bg-emerald-900/80 border border-emerald-800 rounded-xl px-2.5 sm:px-3 py-1.5 text-emerald-300">
+            <Lock className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-400 shrink-0" />
             <span>Zero personal tracking: No flat number or phone is published.</span>
           </div>
         </div>
@@ -238,7 +239,8 @@ export const ContributeModal: React.FC<ContributeModalProps> = ({
             <p className="text-xs text-slate-500">Your rental and liveability insights have been added to the community database.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4 text-xs font-medium max-h-[75vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="p-4 sm:p-6 space-y-4 text-xs font-medium overflow-y-auto flex-1 overscroll-contain">
             {/* City and Locality Selection with Quick Chips */}
             <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80 space-y-3">
               <h3 className="font-bold text-xs text-slate-900 flex items-center gap-1.5">
@@ -465,15 +467,23 @@ export const ContributeModal: React.FC<ContributeModalProps> = ({
               </p>
             </div>
 
-            {/* Submit CTA */}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-98"
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>{loading ? 'Publishing Anonymously...' : 'Submit Anonymous Rent Report'}</span>
-            </button>
+            </div>
+
+            {/* Sticky Submit Footer */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex items-center justify-between gap-3">
+              <div className="hidden sm:flex items-center gap-1.5 text-[11px] text-emerald-700">
+                <ShieldCheck className="w-4 h-4 shrink-0" />
+                <span>Zero Tracking • No phone or personal data stored</span>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all active:scale-98 cursor-pointer disabled:opacity-60 shrink-0"
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>{loading ? 'Publishing Anonymously...' : 'Submit Anonymous Rent Report'}</span>
+              </button>
+            </div>
           </form>
         )}
       </div>

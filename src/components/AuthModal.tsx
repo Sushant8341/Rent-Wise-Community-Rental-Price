@@ -129,31 +129,32 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-md w-full border border-slate-200 shadow-2xl overflow-hidden relative">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-md w-full my-auto sm:my-6 border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]">
         {/* Header */}
-        <div className="bg-slate-900 p-6 text-white relative">
+        <div className="bg-slate-900 p-4 sm:p-5 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            className="absolute top-3.5 right-3.5 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
-            <Lock className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            <Lock className="w-3.5 h-3.5 text-emerald-400" />
             <span>RentWise Security Portal</span>
           </div>
 
-          <h2 className="font-heading font-extrabold text-xl text-white">
+          <h2 className="font-heading font-extrabold text-lg sm:text-xl text-white">
             {title}
           </h2>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 sm:mt-1">
             {subtitle}
           </p>
 
           {/* Sign In / Sign Up Mode Switcher Tabs */}
-          <div className="flex bg-slate-800 p-1 rounded-xl mt-4 border border-slate-700">
+          <div className="flex bg-slate-800 p-1 rounded-xl mt-3 sm:mt-4 border border-slate-700">
             <button
               type="button"
               onClick={() => { setMode('signin'); setErrorMsg(''); }}
@@ -179,8 +180,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
           </div>
         </div>
 
-        {/* Body */}
-        <div className="p-6">
+        {/* Scrollable Body */}
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1 overscroll-contain">
           {/* Google Sign-In Provider Button */}
           <button
             type="button"

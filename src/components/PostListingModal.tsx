@@ -152,6 +152,7 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     if (!pickerMapInstance.current) {
       const map = L.map(pickerMapRef.current, {
         zoomControl: true,
+        scrollWheelZoom: false,
       }).setView([pinnedLat || initialLat, pinnedLng || initialLng], 14);
 
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -288,25 +289,26 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-2xl w-full my-8 border border-slate-200 shadow-2xl overflow-hidden relative">
-        <div className="bg-slate-900 p-6 text-white relative">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-2xl w-full my-auto sm:my-6 border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]">
+        <div className="bg-slate-900 p-4 sm:p-6 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
-            <Building2 className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
             <span>Landlord Direct Listing Portal</span>
           </div>
 
-          <h2 className="font-heading font-extrabold text-2xl text-white">
+          <h2 className="font-heading font-extrabold text-lg sm:text-2xl text-white">
             {editingListing ? 'Edit Property Listing' : 'List Your Property (0% Brokerage)'}
           </h2>
-          <p className="text-xs text-slate-300 mt-1">
+          <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 sm:mt-1">
             {editingListing ? 'Update details, rent, or amenities for your listed property.' : 'Reach genuine tenants directly in Visakhapatnam & Vizianagaram without paying broker fees.'}
           </p>
         </div>
@@ -320,7 +322,8 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
             <p className="text-xs text-slate-500">Your property is now live on the map and listings directory.</p>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} className="p-6 space-y-4 text-xs font-medium max-h-[75vh] overflow-y-auto">
+          <form onSubmit={handleSubmit} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="p-4 sm:p-6 space-y-4 text-xs font-medium overflow-y-auto flex-1 overscroll-contain">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <label className="block text-slate-700 font-bold mb-1">Property Headline Title</label>
@@ -551,14 +554,21 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
                 />
               </div>
             </div>
+            </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md"
-            >
-              {loading ? 'Publishing Listing...' : 'Publish Direct Listing (0% Brokerage)'}
-            </button>
+            {/* Sticky Submit Footer (Always visible & reachable on mobile screens) */}
+            <div className="p-3 sm:p-4 bg-slate-50 border-t border-slate-200 shrink-0 flex items-center justify-between gap-3">
+              <div className="hidden sm:block text-[11px] text-slate-500">
+                <span>0% Brokerage • Direct Owner Listing</span>
+              </div>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full sm:w-auto px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer disabled:opacity-60 shrink-0"
+              >
+                {loading ? 'Publishing Listing...' : (editingListing ? 'Update Property Listing' : 'Publish Direct Listing (0% Brokerage)')}
+              </button>
+            </div>
           </form>
         )}
       </div>

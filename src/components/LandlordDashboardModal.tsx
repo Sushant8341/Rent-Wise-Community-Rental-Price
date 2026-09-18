@@ -59,30 +59,31 @@ export const LandlordDashboardModal: React.FC<LandlordDashboardModalProps> = ({
   });
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto animate-in fade-in duration-200">
-      <div className="bg-white rounded-3xl max-w-3xl w-full my-8 border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex flex-col items-center justify-start sm:justify-center p-2 sm:p-4 overflow-y-auto animate-in fade-in duration-200">
+      <div className="bg-white rounded-2xl sm:rounded-3xl max-w-3xl w-full my-auto sm:my-6 border border-slate-200 shadow-2xl overflow-hidden relative flex flex-col max-h-[94vh]">
         
         {/* Header */}
-        <div className="bg-slate-900 p-6 text-white relative shrink-0">
+        <div className="bg-slate-900 p-4 sm:p-6 text-white relative shrink-0">
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            className="absolute top-3.5 right-3.5 sm:top-4 sm:right-4 p-1.5 sm:p-2 text-slate-400 hover:text-white bg-slate-800 rounded-full transition-colors"
+            aria-label="Close modal"
           >
-            <X className="w-5 h-5" />
+            <X className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
-            <Building2 className="w-4 h-4 text-emerald-400" />
+          <div className="flex items-center gap-1.5 text-[11px] sm:text-xs font-bold text-emerald-400 uppercase tracking-wider mb-1">
+            <Building2 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-400" />
             <span>Landlord & Owner Section</span>
           </div>
 
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
             <div>
-              <h2 className="font-heading font-extrabold text-2xl text-white flex items-center gap-2">
+              <h2 className="font-heading font-extrabold text-lg sm:text-2xl text-white flex items-center gap-2">
                 <span>Welcome, {currentUser.name}</span>
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <ShieldCheck className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400" />
               </h2>
-              <p className="text-xs text-slate-300 mt-0.5 flex items-center gap-3">
+              <p className="text-[11px] sm:text-xs text-slate-300 mt-0.5 flex flex-wrap items-center gap-2 sm:gap-3">
                 <span>📧 {currentUser.email}</span>
                 {currentUser.phone && <span>📞 {currentUser.phone}</span>}
               </p>

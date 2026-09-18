@@ -274,7 +274,7 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
   }, [filteredListings, filteredBenchmarks, selectedCity, mapMode, mobilePreviewListing]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+    <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 py-3 sm:py-6">
       {/* Mobile View Mode Switcher Header (Visible on mobile/tablets < lg) */}
       <div className="lg:hidden mb-3 bg-white rounded-2xl border border-slate-200 p-2 shadow-xs flex items-center justify-between gap-1.5">
         <div className="flex items-center gap-1 w-full bg-slate-100 p-1 rounded-xl">
@@ -432,18 +432,18 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
       </div>
 
       {/* Main Container: Map & Listings */}
-      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 relative transition-all duration-300 ${
+      <div className={`grid grid-cols-1 lg:grid-cols-12 gap-3 sm:gap-6 relative transition-all duration-300 ${
         isMobileFullscreen 
-          ? 'fixed inset-0 z-50 bg-white p-3' 
-          : 'min-h-[520px] lg:h-[700px]'
+          ? 'fixed inset-0 z-50 bg-white p-2 sm:p-3' 
+          : 'min-h-[440px] lg:h-[700px]'
       }`}>
         {/* Left Column: List of Homes */}
         <div className={`
-          lg:col-span-5 flex-col bg-slate-50 rounded-2xl border border-slate-200 p-3 overflow-hidden transition-all duration-300
+          lg:col-span-5 flex-col bg-slate-50 rounded-2xl border border-slate-200 p-2 sm:p-3 overflow-hidden transition-all duration-300
           ${isPanelCollapsed ? 'hidden' : 'flex'}
           ${mobileViewMode === 'map' ? 'hidden lg:flex' : ''}
-          ${mobileViewMode === 'split' ? 'h-[360px] lg:h-full order-2 lg:order-1' : ''}
-          ${mobileViewMode === 'list' ? 'h-[620px] lg:h-full order-1' : ''}
+          ${mobileViewMode === 'split' ? 'h-[330px] lg:h-full order-2 lg:order-1' : ''}
+          ${mobileViewMode === 'list' ? 'min-h-[420px] max-h-[78vh] lg:h-full order-1' : ''}
         `}>
           <div className="flex items-center justify-between px-2 pb-2 border-b border-slate-200">
             <div>
@@ -600,8 +600,8 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
           relative rounded-2xl overflow-hidden border border-slate-200 shadow-sm transition-all duration-300
           ${isPanelCollapsed ? 'lg:col-span-12' : 'lg:col-span-7'}
           ${mobileViewMode === 'list' ? 'hidden lg:block' : 'block'}
-          ${mobileViewMode === 'split' ? 'h-[320px] lg:h-full order-1 lg:order-2' : ''}
-          ${mobileViewMode === 'map' ? 'h-[520px] sm:h-[580px] lg:h-full order-1' : ''}
+          ${mobileViewMode === 'split' ? 'h-[300px] sm:h-[340px] lg:h-full order-1 lg:order-2' : ''}
+          ${mobileViewMode === 'map' ? 'h-[460px] sm:h-[540px] lg:h-full order-1' : ''}
           ${isMobileFullscreen ? 'h-full w-full' : ''}
         `}>
           {/* Leaflet Map Canvas */}
