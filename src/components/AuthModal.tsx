@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Lock, Mail, User, Phone, ArrowRight, ShieldCheck, KeyRound, AlertCircle, Sparkles, ExternalLink, Copy, Check } from 'lucide-react';
+import { X, Lock, Mail, User, Phone, ArrowRight, ShieldCheck, KeyRound, AlertCircle, ExternalLink, Copy, Check } from 'lucide-react';
 import { signInWithEmail, signUpWithEmail, signInWithGoogle, UserProfile } from '../lib/firebase';
 
 interface AuthModalProps {
@@ -62,22 +62,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setCopiedDomain(true);
       setTimeout(() => setCopiedDomain(false), 2000);
     }
-  };
-
-  const handleDemoLogin = (role: 'owner' | 'tenant') => {
-    const demoUser: UserProfile = role === 'owner' ? {
-      uid: 'demo-owner-101',
-      name: 'Ramesh Varma (Verified Owner)',
-      email: 'ramesh.varma@demo.rentwise.in',
-      phone: '+91 98480 22334',
-    } : {
-      uid: 'demo-tenant-202',
-      name: 'Priya Reddy (Resident)',
-      email: 'priya.reddy@demo.rentwise.in',
-      phone: '+91 99887 76655',
-    };
-    onLoginSuccess(demoUser);
-    onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -263,32 +247,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <span>{errorMsg}</span>
             </div>
           )}
-
-          {/* Quick Demo Access */}
-          <div className="mb-4 p-2.5 bg-slate-50 border border-slate-200 rounded-xl">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-600 mb-1.5">
-              <span className="flex items-center gap-1">
-                <Sparkles className="w-3 h-3 text-emerald-600" />
-                Instant Demo Access (No Setup Needed):
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('owner')}
-                className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-[11px] rounded-lg shadow-2xs transition-colors"
-              >
-                Owner Demo
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDemoLogin('tenant')}
-                className="flex-1 py-1.5 px-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-800 font-semibold text-[11px] rounded-lg shadow-2xs transition-colors"
-              >
-                Resident Demo
-              </button>
-            </div>
-          </div>
 
           <form onSubmit={handleSubmit} className="space-y-3.5 text-xs">
             {mode === 'signup' && (
