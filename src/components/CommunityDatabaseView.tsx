@@ -107,9 +107,6 @@ export const CommunityDatabaseView: React.FC<CommunityDatabaseViewProps> = ({
   const avgRent2BHK = filteredReports.length > 0 
     ? Math.round(filteredReports.reduce((acc, r) => acc + r.rent, 0) / filteredReports.length)
     : 13500;
-  const avgWaterScore = filteredReports.length > 0
-    ? (filteredReports.reduce((acc, r) => acc + r.waterSupplyRating, 0) / filteredReports.length).toFixed(1)
-    : '4.5';
 
   const quickFilterLocalities = selectedCity === 'Vizianagaram' 
     ? POPULAR_LOCALITIES_VZM 
@@ -146,7 +143,7 @@ export const CommunityDatabaseView: React.FC<CommunityDatabaseViewProps> = ({
         </div>
 
         {/* KPI Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-8 pt-6 border-t border-slate-800 text-xs font-medium">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-6 border-t border-slate-800 text-xs font-medium">
           <div className="bg-slate-800/60 backdrop-blur-xs p-3.5 rounded-2xl border border-slate-700/60">
             <div className="text-slate-400 flex items-center gap-1">
               <Users className="w-3.5 h-3.5 text-emerald-400" /> Active AP Submissions
@@ -162,15 +159,6 @@ export const CommunityDatabaseView: React.FC<CommunityDatabaseViewProps> = ({
             </div>
             <div className="font-heading font-bold text-xl text-emerald-400 mt-1">
               {formatINR(avgRent2BHK)} /mo
-            </div>
-          </div>
-
-          <div className="bg-slate-800/60 backdrop-blur-xs p-3.5 rounded-2xl border border-slate-700/60">
-            <div className="text-slate-400 flex items-center gap-1">
-              <Droplets className="w-3.5 h-3.5 text-sky-400" /> Municipal Water Rating
-            </div>
-            <div className="font-heading font-bold text-xl text-sky-300 mt-1">
-              {avgWaterScore} / 5.0
             </div>
           </div>
         </div>
