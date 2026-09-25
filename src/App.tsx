@@ -305,15 +305,7 @@ export default function App() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4 text-slate-400">
-            <a
-              href="/RentWise_Community_Project_Report.docx"
-              download="RentWise_Community_Project_Report.docx"
-              className="px-3 py-1.5 bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors"
-              title="Download official MVGR College Community Project Report (.docx)"
-            >
-              <span>📄 Download Project Report (.docx)</span>
-            </a>
-            <span className="hidden sm:inline">•</span>
+            
             <span className="flex items-center gap-1 text-[11px]">
               <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Anonymous Resident Submissions
             </span>
