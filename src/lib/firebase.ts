@@ -14,10 +14,12 @@ import {
   getFirestore, 
   doc, 
   setDoc, 
-  getDoc,
-  collection,
-  addDoc,
-  onSnapshot
+  getDoc, 
+  collection, 
+  addDoc, 
+  onSnapshot,
+  deleteDoc,
+  getDocs
 } from 'firebase/firestore';
 
 import defaultFirebaseConfig from '../../firebase-applet-config.json';
@@ -125,6 +127,103 @@ export function subscribeToFirebaseReports(
       }
     }
   );
+}
+
+// Function to save property listing to Firebase Firestore
+export async function saveListingToFirebase(listingData: any) {
+  const path = 'listings';
+  const id = listingData.id || `lst-custom-${Date.now()}`;
+  const dataToSave = {
+    ...listingData,
+    id,
+    postedDate: listingData.postedDate || new Date().toISOString().split('T')[0],
+    isFirebaseStored: true,
+  };
+
+  try {
+    const listingRef = doc(db, path, id);
+    await setDoc(listingRef, dataToSave, { merge: true });
+    return dataToSave;
+  } catch (error) {
+    try {
+      handleFirestoreError(error, OperationType.WRITE, path);
+    } catch (err) {
+      console.warn('Firestore listing write note (saved locally):', err);
+    }
+    return { ...dataToSave, isFirebaseStored: false };
+  }
+}
+
+// Function to update existing property listing in Firebase Firestore
+export async function updateListingInFirebase(id: string, updatedData: any) {
+  const path = 'listings';
+  try {
+    const listingRef = doc(db, path, id);
+    await setDoc(listingRef, { ...updatedData, id }, { merge: true });
+    return { ...updatedData, id, isFirebaseStored: true };
+  } catch (error) {
+    try {
+      handleFirestoreError(error, OperationType.UPDATE, path);
+    } catch (err) {
+      console.warn('Firestore listing update note:', err);
+    }
+    return { ...updatedData, id, isFirebaseStored: false };
+  }
+}
+
+// Function to delete property listing in Firebase Firestore
+export async function deleteListingFromFirebase(id: string) {
+  const path = 'listings';
+  try {
+    const listingRef = doc(db, path, id);
+    await deleteDoc(listingRef);
+    return true;
+  } catch (error) {
+    try {
+      handleFirestoreError(error, OperationType.DELETE, path);
+    } catch (err) {
+      console.warn('Firestore listing delete note:', err);
+    }
+    return false;
+  }
+}
+
+// Function to subscribe to real-time listings from Firestore
+export function subscribeToListingsFromFirebase(
+  callback: (listings: any[]) => void,
+  onError?: (err: any) => void
+) {
+  const path = 'listings';
+  return onSnapshot(
+    collection(db, path),
+    (snapshot) => {
+      const listingsList = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      callback(listingsList);
+    },
+    (error) => {
+      try {
+        handleFirestoreError(error, OperationType.GET, path);
+      } catch (err) {
+        if (onError) {
+          onError(err);
+        } else {
+          console.warn('Firestore listings subscription notice:', err);
+        }
+      }
+    }
+  );
+}
+
+// Function to fetch all listings once from Firestore
+export async function fetchListingsFromFirebase() {
+  const path = 'listings';
+  try {
+    const snap = await getDocs(collection(db, path));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (error) {
+    console.warn('Firestore fetchListings error:', error);
+    return [];
+  }
 }
 
 export interface UserProfile {

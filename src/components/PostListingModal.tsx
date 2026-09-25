@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import L from 'leaflet';
-import { FurnishingType, PropertyType } from '../types';
-import { PlusCircle, Building2, X, Check, MapPin, Navigation } from 'lucide-react';
+import { FurnishingType, PropertyType, RentalListing } from '../types';
+import { PlusCircle, Building2, X, Check, MapPin, Navigation, AlertCircle } from 'lucide-react';
+import { saveListingToFirebase, updateListingInFirebase } from '../lib/firebase';
+import { saveLocalListing } from '../lib/storage';
 
 interface PostListingModalProps {
   isOpen: boolean;
@@ -223,66 +225,123 @@ export const PostListingModal: React.FC<PostListingModalProps> = ({
     }
   }, [city]);
 
+const DEFAULT_PROPERTY_IMAGES = [
+  'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=800&q=80',
+  'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80',
+];
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    const payload = {
-      title,
-      city,
-      locality,
-      address: address || `${locality}, ${city}`,
+    const listingId = editingListing?.id || `lst-custom-${Date.now()}`;
+    const propertyImages = (editingListing?.images && editingListing.images.length > 0)
+      ? editingListing.images
+      : [
+          DEFAULT_PROPERTY_IMAGES[Math.floor(Math.random() * DEFAULT_PROPERTY_IMAGES.length)],
+          DEFAULT_PROPERTY_IMAGES[(Math.floor(Math.random() * DEFAULT_PROPERTY_IMAGES.length) + 1) % DEFAULT_PROPERTY_IMAGES.length]
+        ];
+
+    const finalListing: RentalListing = {
+      id: listingId,
+      title: title.trim() || `${bhk} BHK in ${locality}, ${city}`,
+      city: (city as any) || 'Visakhapatnam',
+      locality: locality.trim() || 'MVP Colony',
+      address: address.trim() || `${locality.trim() || 'MVP Colony'}, ${city}`,
       lat: pinnedLat,
       lng: pinnedLng,
-      rent,
-      deposit,
-      estimatedMaintenance: maintenance,
-      bhk,
-      bathrooms,
-      sqft,
+      rent: Number(rent) || 15000,
+      deposit: Number(deposit) || 30000,
+      estimatedMaintenance: Number(maintenance) || 1000,
+      bhk: Number(bhk) || 2,
+      bathrooms: Number(bathrooms) || 2,
+      sqft: Number(sqft) || 1200,
       furnishing,
       propertyType,
-      images: [],
+      images: propertyImages,
       amenities: selectedAmenities.length > 0 ? selectedAmenities : ['Municipal Water', 'Power Backup', 'Car Parking', '24x7 Security'],
-      availableFrom: 'Immediate',
-      landlordName: landlordName || 'Property Owner',
-      landlordPhone: landlordPhone || '+91 98480 99999',
-      landlordEmail: landlordEmail || 'owner@rentwise.in',
+      availableFrom: editingListing?.availableFrom || 'Immediate',
+      landlordName: landlordName.trim() || currentUser?.name || 'Property Owner',
+      landlordPhone: landlordPhone.trim() || currentUser?.phone || '+91 98480 99999',
+      landlordEmail: landlordEmail.trim() || currentUser?.email || 'owner@rentwise.in',
       isDirectFromOwner: true,
       verifiedListing: true,
-      description: description || `Well maintained ${bhk} BHK property in prime ${locality}, ${city}. Direct listing from owner with 0% brokerage.`,
-      localityAverageRent: rent,
+      description: description.trim() || `Well-maintained ${bhk} BHK property in prime ${locality}, ${city}. Direct listing from owner with 0% brokerage.`,
+      localityAverageRent: Number(rent) || 15000,
       facing,
       preferredTenants,
+      postedDate: editingListing?.postedDate || new Date().toISOString().split('T')[0],
+      ...(currentUser?.uid ? { ownerId: currentUser.uid } : {}),
     };
 
     try {
-      const url = editingListing ? `/api/listings/${editingListing.id}` : '/api/listings';
-      const method = editingListing ? 'PUT' : 'POST';
-
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
-      if (data.success) {
-        if (editingListing && onListingUpdated) {
-          onListingUpdated(data.data);
+      // 1. Direct persistence to Firebase Firestore (Client-side, works on Vercel)
+      try {
+        if (editingListing) {
+          await updateListingInFirebase(listingId, finalListing);
         } else {
-          onListingCreated(data.data);
+          await saveListingToFirebase(finalListing);
         }
-        setSuccess(true);
-        setTimeout(() => {
-          setSuccess(false);
-          onClose();
-        }, 1200);
+      } catch (fbErr) {
+        console.warn('Firestore listing sync notice (using local storage):', fbErr);
       }
+
+      // 2. Persist to LocalStorage (Guarantees persistence across page refreshes on Vercel)
+      saveLocalListing(finalListing);
+
+      // 3. Immediately trigger state update in UI
+      if (editingListing && onListingUpdated) {
+        onListingUpdated(finalListing);
+      } else {
+        onListingCreated(finalListing);
+      }
+
+      // 4. Try backend sync if running in Node/Express (best-effort, non-blocking)
+      try {
+        const url = editingListing ? `/api/listings/${editingListing.id}` : '/api/listings';
+        const method = editingListing ? 'PUT' : 'POST';
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(finalListing),
+        });
+        if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
+          const data = await res.json();
+          if (data?.data) {
+            saveLocalListing(data.data);
+          }
+        }
+      } catch (apiErr) {
+        // Express backend is not running on static Vercel deployment; completely normal
+        console.info('Backend server sync note:', apiErr);
+      }
+
+      // 5. Show success screen and close
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1200);
     } catch (err) {
       console.error('Failed to save listing:', err);
+      // Fallback: Ensure listing is stored and updated in UI anyway
+      saveLocalListing(finalListing);
+      if (editingListing && onListingUpdated) {
+        onListingUpdated(finalListing);
+      } else {
+        onListingCreated(finalListing);
+      }
+      setSuccess(true);
+      setTimeout(() => {
+        setSuccess(false);
+        onClose();
+      }, 1200);
     } finally {
       setLoading(false);
     }

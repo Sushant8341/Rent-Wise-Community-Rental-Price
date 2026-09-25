@@ -43,6 +43,7 @@ export const LandlordDashboardModal: React.FC<LandlordDashboardModalProps> = ({
       (userEmail && lEmail && lEmail === userEmail) ||
       (userPhone && userPhone.length > 5 && lPhone && lPhone.includes(userPhone)) ||
       (userName && lName && lName === userName) ||
+      Boolean((listing as any).ownerId && currentUser.uid && (listing as any).ownerId === currentUser.uid) ||
       listing.id.startsWith('lst-custom-')
     );
   };

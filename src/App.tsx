@@ -17,7 +17,22 @@ import { PostListingModal } from './components/PostListingModal';
 import { AuthModal } from './components/AuthModal';
 import { LandlordDashboardModal } from './components/LandlordDashboardModal';
 import { ShieldCheck } from 'lucide-react';
-import { subscribeToAuth, logoutUser, UserProfile, subscribeToFirebaseReports } from './lib/firebase';
+import { 
+  subscribeToAuth, 
+  logoutUser, 
+  UserProfile, 
+  subscribeToFirebaseReports,
+  subscribeToListingsFromFirebase,
+  saveListingToFirebase,
+  updateListingInFirebase,
+  deleteListingFromFirebase
+} from './lib/firebase';
+import { 
+  getLocalListings, 
+  saveLocalListing, 
+  deleteLocalListing, 
+  getDeletedListingIds 
+} from './lib/storage';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'community'>('map');
@@ -33,8 +48,18 @@ export default function App() {
     return () => unsubscribe();
   }, []);
 
-  // State data
-  const [listings, setListings] = useState<RentalListing[]>(INITIAL_LISTINGS);
+  // State data with local storage & deleted filter initialized
+  const [listings, setListings] = useState<RentalListing[]>(() => {
+    const local = getLocalListings();
+    const deletedIds = new Set(getDeletedListingIds());
+    const combined = [...local, ...INITIAL_LISTINGS].filter(l => !deletedIds.has(l.id));
+    const seen = new Set<string>();
+    return combined.filter(l => {
+      if (seen.has(l.id)) return false;
+      seen.add(l.id);
+      return true;
+    });
+  });
   const [reports, setReports] = useState<CommunityRentReport[]>(INITIAL_COMMUNITY_REPORTS);
   const [benchmarks, setBenchmarks] = useState<LocalityBenchmark[]>(INITIAL_BENCHMARKS);
 
@@ -66,51 +91,116 @@ export default function App() {
     };
   }, []);
 
-  // Fetch live API data on mount
+  // Subscribe to real-time Firebase listings
+  useEffect(() => {
+    const unsub = subscribeToListingsFromFirebase(
+      (fbListings) => {
+        if (fbListings && fbListings.length > 0) {
+          const deletedIds = new Set(getDeletedListingIds());
+          setListings(prev => {
+            const currentMap = new Map(prev.map(l => [l.id, l]));
+            fbListings.forEach(item => {
+              if (!deletedIds.has(item.id)) {
+                currentMap.set(item.id, item as RentalListing);
+              }
+            });
+            return Array.from(currentMap.values());
+          });
+        }
+      },
+      (err) => {
+        console.info('Live Firestore listings listener status:', err);
+      }
+    );
+    return () => {
+      if (typeof unsub === 'function') unsub();
+    };
+  }, []);
+
+  // Fetch live API data on mount (gracefully handles static Vercel hosting)
   useEffect(() => {
     async function loadData() {
       try {
-        const [listingsRes, reportsRes, benchmarksRes] = await Promise.all([
+        const results = await Promise.allSettled([
           fetch('/api/listings'),
           fetch('/api/reports'),
           fetch('/api/benchmarks'),
         ]);
 
-        if (listingsRes.ok) {
-          const d = await listingsRes.json();
-          if (d.data?.length) setListings(d.data);
+        const [listingsRes, reportsRes, benchmarksRes] = results;
+
+        if (listingsRes.status === 'fulfilled' && listingsRes.value.ok) {
+          try {
+            const d = await listingsRes.value.json();
+            if (d?.data?.length) {
+              const deletedIds = new Set(getDeletedListingIds());
+              setListings(prev => {
+                const currentMap = new Map(prev.map(l => [l.id, l]));
+                d.data.forEach((item: RentalListing) => {
+                  if (!deletedIds.has(item.id)) {
+                    currentMap.set(item.id, item);
+                  }
+                });
+                return Array.from(currentMap.values());
+              });
+            }
+          } catch (e) {
+            // Handled safely
+          }
         }
-        if (reportsRes.ok) {
-          const d = await reportsRes.json();
-          if (d.data?.length) setReports(d.data);
+        if (reportsRes.status === 'fulfilled' && reportsRes.value.ok) {
+          try {
+            const d = await reportsRes.value.json();
+            if (d?.data?.length) setReports(d.data);
+          } catch (e) {}
         }
-        if (benchmarksRes.ok) {
-          const d = await benchmarksRes.json();
-          if (d.data?.length) setBenchmarks(d.data);
+        if (benchmarksRes.status === 'fulfilled' && benchmarksRes.value.ok) {
+          try {
+            const d = await benchmarksRes.value.json();
+            if (d?.data?.length) setBenchmarks(d.data);
+          } catch (e) {}
         }
       } catch (err) {
-        console.warn('Backend server connecting, using local state:', err);
+        console.info('Running in direct client-storage mode (normal for Vercel):', err);
       }
     }
     loadData();
   }, []);
 
-  const handleListingCreated = (newListing: RentalListing) => {
-    setListings(prev => [newListing, ...prev]);
+  const handleListingCreated = async (newListing: RentalListing) => {
+    saveLocalListing(newListing);
+    try {
+      await saveListingToFirebase(newListing);
+    } catch (e) {
+      console.warn('Listing saved locally, Firestore sync notice:', e);
+    }
+    setListings(prev => [newListing, ...prev.filter(l => l.id !== newListing.id)]);
   };
 
-  const handleListingUpdated = (updatedListing: RentalListing) => {
+  const handleListingUpdated = async (updatedListing: RentalListing) => {
+    saveLocalListing(updatedListing);
+    try {
+      await updateListingInFirebase(updatedListing.id, updatedListing);
+    } catch (e) {
+      console.warn('Listing updated locally, Firestore sync notice:', e);
+    }
     setListings(prev => prev.map(item => item.id === updatedListing.id ? updatedListing : item));
     setEditingListing(null);
   };
 
   const handleDeleteListing = async (listingId: string) => {
+    deleteLocalListing(listingId);
     try {
-      await fetch(`/api/listings/${listingId}`, {
+      await deleteListingFromFirebase(listingId);
+    } catch (e) {
+      console.warn('Listing removed locally, Firestore sync notice:', e);
+    }
+    try {
+      fetch(`/api/listings/${listingId}`, {
         method: 'DELETE',
-      });
+      }).catch(() => {});
     } catch (err) {
-      console.error('Failed to delete listing on server:', err);
+      // Best-effort backend call
     }
     setListings(prev => prev.filter(item => item.id !== listingId));
   };
