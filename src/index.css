@@ -17,9 +17,14 @@
   z-index: 1;
 }
 
-.custom-map-pin {
-  background: none;
-  border: none;
+.custom-map-pin, .custom-pin-picker {
+  background: transparent !important;
+  border: none !important;
+}
+
+.leaflet-div-icon {
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Custom scrollbar */

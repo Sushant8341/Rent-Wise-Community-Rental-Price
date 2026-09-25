@@ -34,6 +34,16 @@ import {
   getDeletedListingIds 
 } from './lib/storage';
 
+// Helper to sanitize stock images from listings
+function sanitizeListing(listing: RentalListing): RentalListing {
+  return {
+    ...listing,
+    images: Array.isArray(listing.images)
+      ? listing.images.filter(img => typeof img === 'string' && !img.includes('images.unsplash.com'))
+      : []
+  };
+}
+
 export default function App() {
   const [activeTab, setActiveTab] = useState<'map' | 'community'>('map');
   const [selectedCity, setSelectedCity] = useState<string>('Visakhapatnam');
@@ -54,7 +64,7 @@ export default function App() {
     const deletedIds = new Set(getDeletedListingIds());
     const combined = [...local, ...INITIAL_LISTINGS].filter(l => !deletedIds.has(l.id));
     const seen = new Set<string>();
-    return combined.filter(l => {
+    return combined.map(sanitizeListing).filter(l => {
       if (seen.has(l.id)) return false;
       seen.add(l.id);
       return true;
@@ -101,7 +111,7 @@ export default function App() {
             const currentMap = new Map(prev.map(l => [l.id, l]));
             fbListings.forEach(item => {
               if (!deletedIds.has(item.id)) {
-                currentMap.set(item.id, item as RentalListing);
+                currentMap.set(item.id, sanitizeListing(item as RentalListing));
               }
             });
             return Array.from(currentMap.values());
@@ -138,7 +148,7 @@ export default function App() {
                 const currentMap = new Map(prev.map(l => [l.id, l]));
                 d.data.forEach((item: RentalListing) => {
                   if (!deletedIds.has(item.id)) {
-                    currentMap.set(item.id, item);
+                    currentMap.set(item.id, sanitizeListing(item));
                   }
                 });
                 return Array.from(currentMap.values());

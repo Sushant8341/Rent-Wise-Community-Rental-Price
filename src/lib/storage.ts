@@ -9,7 +9,14 @@ export function getLocalListings(): RentalListing[] {
     const raw = localStorage.getItem(STORAGE_KEY_LISTINGS);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    if (!Array.isArray(parsed)) return [];
+    // Sanitize any previously cached stock unsplash images
+    return parsed.map(item => ({
+      ...item,
+      images: Array.isArray(item.images) 
+        ? item.images.filter((img: string) => typeof img === 'string' && !img.includes('images.unsplash.com'))
+        : []
+    }));
   } catch (err) {
     console.warn('Failed to parse local listings:', err);
     return [];

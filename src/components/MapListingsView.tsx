@@ -32,7 +32,8 @@ import {
   Columns as SplitIcon,
   Compass,
   ZoomIn,
-  ZoomOut
+  ZoomOut,
+  Camera
 } from 'lucide-react';
 
 import { ConfirmDeleteModal } from './ConfirmDeleteModal';
@@ -207,13 +208,21 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
           const customIcon = L.divIcon({
             className: 'custom-map-pin',
             html: `
-              <div class="px-2.5 py-1.5 rounded-full ${isSelected ? 'bg-emerald-600 scale-110 ring-4 ring-emerald-300' : 'bg-slate-900'} text-white border-2 border-emerald-400 text-xs font-bold shadow-xl hover:scale-115 hover:bg-emerald-600 transition-all flex items-center gap-1 cursor-pointer whitespace-nowrap">
-                <span>${priceDisplay}</span>
-                <span class="text-[10px] text-emerald-300 font-medium">${listing.bhk}BHK</span>
+              <div class="flex flex-col items-center select-none cursor-pointer group origin-bottom transition-transform duration-150 ${isSelected ? 'scale-115 z-50' : 'hover:scale-110'}">
+                <!-- Pin Head Badge -->
+                <div class="px-2.5 py-1 rounded-xl ${isSelected ? 'bg-emerald-600 ring-2 ring-emerald-300 ring-offset-1 shadow-emerald-900/30' : 'bg-slate-950 hover:bg-emerald-700'} text-white border border-emerald-400/90 text-xs font-bold shadow-xl flex items-center gap-1.5 whitespace-nowrap">
+                  <span>${priceDisplay}</span>
+                  <span class="w-1 h-1 rounded-full bg-emerald-300"></span>
+                  <span class="text-[10px] text-emerald-200 font-semibold">${listing.bhk}BHK</span>
+                </div>
+                <!-- Pin Pointer Needle -->
+                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] ${isSelected ? 'border-t-emerald-600' : 'border-t-slate-950'} -mt-[1px]"></div>
+                <!-- Ground Target Dot exactly on the land parcel -->
+                <div class="w-2 h-2 rounded-full ${isSelected ? 'bg-emerald-500 ring-4 ring-emerald-300/50' : 'bg-slate-950 ring-1 ring-white/90'} shadow-sm -mt-0.5"></div>
               </div>
             `,
-            iconSize: [64, 30],
-            iconAnchor: [32, 15],
+            iconSize: [84, 40],
+            iconAnchor: [42, 40],
           });
 
           const marker = L.marker([listing.lat, listing.lng], { icon: customIcon });
@@ -234,16 +243,20 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
           const customIcon = L.divIcon({
             className: 'custom-map-pin',
             html: `
-              <div class="px-3 py-1.5 rounded-xl bg-slate-900/95 text-emerald-100 border-2 border-emerald-400/90 text-xs font-semibold shadow-xl flex flex-col items-center cursor-pointer whitespace-nowrap hover:scale-105 transition-transform">
-                <span class="text-[11px] uppercase text-emerald-300 font-bold tracking-wide">${b.name}</span>
-                ${hasRentData 
-                  ? `<span class="text-white font-bold">Avg ₹${Math.round(b.avgRent2BHK / 1000)}k/mo</span>`
-                  : `<span class="text-emerald-400 text-[10px] font-medium">Andhra Pradesh</span>`
-                }
+              <div class="flex flex-col items-center select-none cursor-pointer group origin-bottom transition-transform duration-150 hover:scale-105">
+                <div class="px-3 py-1.5 rounded-xl bg-slate-950/95 text-emerald-100 border border-emerald-400/80 text-xs font-semibold shadow-xl flex flex-col items-center whitespace-nowrap group-hover:border-emerald-300">
+                  <span class="text-[10px] uppercase text-emerald-300 font-bold tracking-wider">${b.name}</span>
+                  ${hasRentData 
+                    ? `<span class="text-white font-extrabold text-[11px]">Avg ₹${Math.round(b.avgRent2BHK / 1000)}k/mo</span>`
+                    : `<span class="text-emerald-400 text-[10px] font-medium">Andhra Pradesh</span>`
+                  }
+                </div>
+                <div class="w-0 h-0 border-l-[5px] border-l-transparent border-r-[5px] border-r-transparent border-t-[6px] border-t-slate-950 -mt-[1px]"></div>
+                <div class="w-2 h-2 rounded-full bg-emerald-400 ring-1 ring-slate-900 shadow-sm -mt-0.5"></div>
               </div>
             `,
-            iconSize: [130, 44],
-            iconAnchor: [65, 22],
+            iconSize: [140, 52],
+            iconAnchor: [70, 52],
           });
 
           const marker = L.marker([b.centerLat, b.centerLng], { icon: customIcon });
@@ -514,19 +527,23 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
                     <div className="flex gap-3">
                       {/* Thumbnail photo / Property Badge */}
                       <div className="w-20 sm:w-24 h-20 sm:h-24 rounded-lg bg-slate-100 overflow-hidden relative shrink-0">
-                        {item.images && item.images.length > 0 ? (
-                          <img
-                            src={item.images[0]}
-                            alt={item.title}
-                            className="w-full h-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-full h-full bg-slate-900 border border-slate-800 flex flex-col items-center justify-center p-1.5 text-center text-white">
-                            <Building2 className="w-5 sm:w-6 h-5 sm:h-6 text-emerald-400 mb-0.5" />
-                            <span className="text-[10px] font-bold text-emerald-100">{item.bhk} BHK</span>
-                            <span className="text-[8px] text-slate-300 uppercase tracking-wider truncate max-w-full">{item.propertyType}</span>
-                          </div>
-                        )}
+                        {(() => {
+                          const cleanImages = (item.images || []).filter(img => typeof img === 'string' && !img.includes('images.unsplash.com'));
+                          return cleanImages.length > 0 ? (
+                            <img
+                              src={cleanImages[0]}
+                              alt={item.title}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-slate-900 to-slate-800 border border-slate-700/80 flex flex-col items-center justify-center p-1.5 text-center text-white">
+                              <Building2 className="w-5 sm:w-6 h-5 sm:h-6 text-emerald-400 mb-0.5" />
+                              <span className="text-[10px] font-bold text-emerald-100">{item.bhk} BHK</span>
+                              <span className="text-[8px] text-slate-300 uppercase tracking-wider truncate max-w-full font-medium">{item.propertyType}</span>
+                              <span className="text-[7px] text-slate-400 mt-0.5">{item.sqft} sqft</span>
+                            </div>
+                          );
+                        })()}
                         {item.isDirectFromOwner && (
                           <span className="absolute top-1 left-1 bg-emerald-600 text-white text-[8px] sm:text-[9px] font-bold px-1 py-0.5 rounded shadow-xs">
                             Owner
@@ -819,41 +836,53 @@ export const MapListingsView: React.FC<MapListingsViewProps> = ({
             </div>
 
             {/* Image Gallery Grid or Property Banner */}
-            {selectedListing.images && selectedListing.images.length > 0 ? (
-              <div className="grid grid-cols-2 gap-2 my-4">
-                <div className="h-48 rounded-xl overflow-hidden bg-slate-100">
-                  <img
-                    src={selectedListing.images[0]}
-                    alt="Property view"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {selectedListing.images[1] && (
-                  <div className="h-48 rounded-xl overflow-hidden bg-slate-100">
+            {(() => {
+              const cleanImages = (selectedListing.images || []).filter(img => typeof img === 'string' && !img.includes('images.unsplash.com'));
+              return cleanImages.length > 0 ? (
+                <div className="my-4 space-y-2">
+                  <div className="h-56 sm:h-72 rounded-2xl overflow-hidden bg-slate-900 border border-slate-200 relative group">
                     <img
-                      src={selectedListing.images[1]}
-                      alt="Property view interior"
+                      src={cleanImages[0]}
+                      alt="Property Primary Photo"
                       className="w-full h-full object-cover"
                     />
+                    <div className="absolute top-3 left-3 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-bold px-2.5 py-1 rounded-lg border border-white/20 flex items-center gap-1.5 shadow-md">
+                      <Camera className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Direct Owner Photo ({cleanImages.length} available)</span>
+                    </div>
                   </div>
-                )}
-              </div>
-            ) : (
-              <div className="my-4 p-5 rounded-2xl bg-slate-900 text-white border border-slate-800 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold">
-                    <Building2 className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 className="font-bold text-sm text-white">{selectedListing.bhk} BHK {selectedListing.propertyType}</h4>
-                    <p className="text-xs text-slate-300 mt-0.5">{selectedListing.locality}, {selectedListing.city} • Pin verified on map</p>
-                  </div>
+                  {cleanImages.length > 1 && (
+                    <div className="grid grid-cols-4 gap-2">
+                      {cleanImages.slice(1, 5).map((img, idx) => (
+                        <div key={idx} className="h-20 sm:h-24 rounded-xl overflow-hidden bg-slate-100 border border-slate-200">
+                          <img
+                            src={img}
+                            alt={`Photo ${idx + 2}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
-                <span className="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-semibold">
-                  Direct Owner Listing
-                </span>
-              </div>
-            )}
+              ) : (
+                <div className="my-4 p-5 rounded-2xl bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white border border-slate-800 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 shadow-md">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold shrink-0">
+                      <Building2 className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm text-white">{selectedListing.bhk} BHK {selectedListing.propertyType}</h4>
+                      <p className="text-xs text-slate-300 mt-0.5">{selectedListing.locality}, {selectedListing.city} • Exact location pinned on map</p>
+                      <span className="text-[10px] text-emerald-300 font-medium block mt-0.5">0% Brokerage Direct Owner Listing • No Fake Stock Photos</span>
+                    </div>
+                  </div>
+                  <span className="text-xs bg-emerald-500/20 text-emerald-300 px-3 py-1.5 rounded-xl border border-emerald-500/30 font-semibold shrink-0">
+                    Verified Direct Listing
+                  </span>
+                </div>
+              );
+            })()}
 
             {/* Price & Deposit Summary Card */}
             <div className="bg-slate-900 text-white p-4 rounded-xl flex flex-wrap items-center justify-between gap-4 my-4">
